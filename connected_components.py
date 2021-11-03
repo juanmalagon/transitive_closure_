@@ -42,7 +42,7 @@ start_time = time.time()
 output = connected_comp(input_table)
 end_time = time.time()
 elapsed_time = end_time - start_time
-print('Elapsed time super-merging (seconds): ', elapsed_time)
+print('Elapsed time finding connected components (seconds): ', elapsed_time)
 
 # 3. Prepare output table
 
