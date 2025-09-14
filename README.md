@@ -1,13 +1,14 @@
 # Connected Components Analysis Tool
 
-A Python-based tool for identifying connected components in graph data represented by CSV files. This tool processes pairs of connected nodes and groups them into equivalence classes (connected components) using an efficient transitive closure algorithm.
+A high-performance Python tool for identifying connected components in graph data represented by CSV files. This tool processes relationships between entities and groups them into equivalence classes using an optimized transitive closure algorithm.
 
 ## Features
 
-- **Efficient Graph Processing**: Uses depth-first search (DFS) for transitive closure computation
-- **Scalable**: Handles large datasets using sparse matrix representations
-- **Flexible Input**: Works with any CSV containing node pairs
-- **Comprehensive Output**: Generates component IDs with source tracking and timestamps
+- **Efficient Graph Processing**: Uses depth-first search (DFS) with sparse matrix operations
+- **Symmetric Relation Handling**: Automatically creates symmetric closure of input relations
+- **Flexible Input Format**: Supports various identifier formats with automatic parsing
+- **Comprehensive Output**: Generates component identifiers with source tracking and processing timestamps
+- **Robust Error Handling**: Validates input data and provides clear error messages
 
 ## Installation
 
@@ -16,145 +17,125 @@ A Python-based tool for identifying connected components in graph data represent
 - Python 3.7+
 - pip (Python package manager)
 
-### Setup
+### Dependencies
 
-1. Clone the repository:
 ```bash
-git clone git@github.com:juanmalagon/transitive_closure_.git
-cd transitive_closure_
-```
-
-2. Install required dependencies:
-```bash
-pip install -r requirements.txt
+pip install pandas scipy
 ```
 
 ## Usage
 
-### Basic Command Line Usage
+### Command Line Interface
 
 ```bash
-python connected_components.py input.csv
+python connected_components.py input.csv -o output.csv
 ```
 
-This will process `input.csv` and create an output file named `connected_components_output.csv`.
+### Required Input Format
 
-### Advanced Options
-
-```bash
-python connected_components.py input.csv -o custom_output.csv
-```
-
-### Input File Format
-
-Your input CSV file must contain at least these two columns:
-- `LEFT_SIDE`: Node identifiers (format: "SOURCE|ID")
-- `RIGHT_SIDE`: Node identifiers (format: "SOURCE|ID")
+Input CSV must contain these exact column names:
+- `LEFT_SIDE`: Entity identifiers (format: "SOURCE|ID" or simple identifiers)
+- `RIGHT_SIDE`: Related entity identifiers (same format as LEFT_SIDE)
 
 Example input:
 ```csv
 LEFT_SIDE,RIGHT_SIDE
-SOURCE_A|123,SOURCE_B|456
-SOURCE_B|456,SOURCE_C|789
-SOURCE_D|101,SOURCE_E|112
+A|1,B|2
+B|2,C|3
+D|4,E|5
 ```
 
 ### Output Format
 
-The tool generates a CSV file with the following columns:
+The tool generates a CSV file with these columns:
 - `ID_UNIQUE`: Unique identifier for each connected component
-- `SOURCE`: The source system of the node
-- `IDI`: The identifier within the source system
-- `TIM_PROCESSED`: Timestamp when processing occurred
+- `SOURCE`: Source system extracted from the entity identifier
+- `IDI`: Local identifier within the source system
+- `TIM_PROCESSED`: Processing timestamp
 
 Example output:
 ```csv
 ID_UNIQUE,SOURCE,IDI,TIM_PROCESSED
-0,SOURCE_A,123,2023-08-15 14:30:45.123456
-0,SOURCE_B,456,2023-08-15 14:30:45.123456
-0,SOURCE_C,789,2023-08-15 14:30:45.123456
-1,SOURCE_D,101,2023-08-15 14:30:45.123456
-1,SOURCE_E,112,2023-08-15 14:30:45.123456
+0,A,1,2023-08-15 14:30:45.123456
+0,B,2,2023-08-15 14:30:45.123456
+0,C,3,2023-08-15 14:30:45.123456
+1,D,4,2023-08-15 14:30:45.123456
+1,E,5,2023-08-15 14:30:45.123456
 ```
 
-## Algorithm Details
+## Algorithm Implementation
 
-The tool uses a two-phase approach to identify connected components:
+The tool implements a three-phase approach:
 
-1. **Graph Construction**: Builds a directed graph from the input pairs
-2. **Transitive Closure**: Computes the transitive closure using DFS to identify all connected nodes
-3. **Equivalence Classes**: Groups nodes that are mutually reachable into components
+1. **Graph Construction**: Builds directed graph from input pairs
+2. **Symmetric Closure**: Creates bidirectional relationships between all connected nodes
+3. **Transitive Closure**: Computes reachability using DFS with sparse matrix optimization
+4. **Equivalence Classes**: Groups mutually reachable nodes into components
 
-The implementation uses SciPy's sparse matrices for memory efficiency with large graphs.
+Key implementation details:
+- Uses SciPy's sparse matrices for memory efficiency
+- Handles self-references and circular relationships
+- Processes nodes with or without source identifiers
+- Efficiently manages large graphs through optimized DFS
 
 ## Project Structure
 
 ```
-connected-components-tool/
-├── connected_components.py  # Main executable script
-├── functions.py            # Graph algorithms implementation
+.
+├── connected_components.py  # Main processing pipeline
+├── functions.py            # Core graph algorithms
+├── test_connected_components.py  # Comprehensive test suite
 ├── requirements.txt        # Python dependencies
-├── LICENSE                 # Apache 2.0 License
-└── README.md              # This file
+└── README.md              # Documentation
 ```
 
-## Development
+## Performance Characteristics
 
-### Code Style
+- Time Complexity: O(V²) worst-case, optimized for sparse graphs
+- Memory Efficiency: Uses sparse matrix representation (LIL format)
+- Scalability: Suitable for graphs with up to 10^5 nodes on standard hardware
 
-This project follows PEP 8 guidelines with comprehensive type hints and docstrings. To ensure code quality:
+## Testing
 
-1. Install development requirements:
+Run the comprehensive test suite:
 ```bash
-pip install -r requirements-dev.txt
+python -m unittest test_connected_components.py
 ```
 
-2. Run linting:
-```bash
-flake8 connected_components.py functions.py
-```
+Tests cover:
+- Basic connected component detection
+- Edge cases (self-references, disconnected graphs)
+- Error handling (missing columns, empty input)
+- Integration tests with file I/O
 
-3. Run type checking:
-```bash
-mypy connected_components.py functions.py
-```
+## Error Handling
 
-### Extending Functionality
+The tool validates:
+- Presence of required columns (LEFT_SIDE, RIGHT_SIDE)
+- Proper file format and accessibility
+- Correct identifier parsing and processing
 
-The code is structured to be easily extensible:
+## Example Use Cases
 
-1. **Adding New Relation Types**: Modify the `is_related` function in `connected_components.py`
-2. **Custom Output Formats**: Extend the `create_output_dataframe` function
-3. **Alternative Algorithms**: Implement new algorithms in `functions.py`
-
-## Performance Considerations
-
-- For very large graphs (>1M nodes), consider increasing available memory
-- The algorithm has O(V²) time complexity in worst case but uses sparse matrices for efficiency
-- Memory usage is optimized through sparse matrix representations
+1. **Data Integration**: Identifying equivalent entities across different systems
+2. **Network Analysis**: Finding connected devices or users in network graphs
+3. **Entity Resolution**: Grouping duplicate records in database systems
+4. **Social Network Analysis**: Discovering communities and relationships
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Apache License 2.0 - See LICENSE file for details.
 
 ## Support
 
-For questions or issues, please open an issue in the GitHub repository with:
-1. A description of the problem
-2. Steps to reproduce
-3. Example input data (if possible)
-4. Error messages or unexpected outputs
+For issues and questions:
+1. Check existing tests for usage examples
+2. Ensure input format matches requirements
+3. Verify all dependencies are installed
 
-## Acknowledgments
+## Contributing
 
-- Uses Pandas for data manipulation
-- Uses SciPy for efficient sparse matrix operations
-- Algorithm based on standard graph theory approaches for connected components
+1. Follow existing code style and patterns
+2. Add tests for new functionality
+3. Update documentation for changes
+4. Ensure all tests pass before submitting
